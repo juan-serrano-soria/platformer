@@ -13,10 +13,19 @@ function love.load()
         world:newRectangleCollider(335, 425, 20, 10),
         world:newRectangleCollider(375, 415, 20, 10),
         world:newRectangleCollider(350, 355, 30, 10),
+        world:newRectangleCollider(435, 245, 30, 10),
+        world:newRectangleCollider(550, 430, 30, 10),
     }
 
-    for i, ground in ipairs(grounds) do
-        ground:setType("static")
+    bouncyGrounds = {
+        world:newRectangleCollider(650, 430, 30, 10),
+        world:newRectangleCollider(700, 280, 30, 10),
+    }
+
+    for _, groundTable in ipairs({grounds, bouncyGrounds}) do
+        for _, ground in ipairs(groundTable) do
+            ground:setType("static")
+        end
     end
 
     rightWall = world:newRectangleCollider(790, 0, 10, 600)
@@ -41,6 +50,14 @@ function love.update(dt)
     for i, ground in ipairs(grounds) do
         if player:isTouching(ground.body) then
             canJump = true
+            break
+        end
+    end
+
+    -- Check if player is on the bouncy ground
+    for i, ground in ipairs(bouncyGrounds) do
+        if player:isTouching(ground.body) then
+            player:applyLinearImpulse(0, -50)
             break
         end
     end
