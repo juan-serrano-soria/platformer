@@ -2,48 +2,63 @@ function love.load()
     wf = require "libs/windfield"
 
     world = wf.newWorld(0, 500)
-    player = world:newRectangleCollider(400, 550, 10, 10)
+    player = world:newRectangleCollider(400, 500, 10, 10)
+    player:setFixedRotation(true)
 
-    grounds = {
-        world:newRectangleCollider(0, 590, 800, 10), -- bottom ground
-        world:newRectangleCollider(225, 550, 50, 10),
-        world:newRectangleCollider(100, 500, 50, 10),
-        world:newRectangleCollider(150, 445, 50, 10),
-        world:newRectangleCollider(300, 430, 20, 10),
-        world:newRectangleCollider(335, 425, 20, 10),
-        world:newRectangleCollider(375, 415, 20, 10),
-        world:newRectangleCollider(350, 355, 30, 10),
-        world:newRectangleCollider(550, 430, 30, 10),
-        world:newRectangleCollider(435, 245, 30, 10),
-        world:newRectangleCollider(285, 215, 120, 10),
+    normalPlatforms = {
+        {x = 225, y = 550, w = 50, h = 10},
+        {x = 100, y = 500, w = 50, h = 10},
+        {x = 150, y = 445, w = 50, h = 10},
+        {x = 300, y = 430, w = 20, h = 10},
+        {x = 335, y = 425, w = 20, h = 10},
+        {x = 375, y = 415, w = 20, h = 10},
+        {x = 350, y = 355, w = 30, h = 10},
+        {x = 550, y = 430, w = 30, h = 10},
+        {x = 435, y = 245, w = 30, h = 10},
+        {x = 285, y = 215, w = 120, h = 10},
     }
 
-    bouncyGrounds = {
-        world:newRectangleCollider(650, 430, 30, 10),
-        world:newRectangleCollider(700, 280, 30, 10),
-        world:newRectangleCollider(100, 210, 10, 10),
+    bouncyPlatforms = {
+        {x = 650, y = 430, w = 30, h = 10},
+        {x = 700, y = 280, w = 30, h = 10},
+        {x = 100, y = 210, w = 10, h = 10},
     }
 
-    jumpThroughGrounds = {
-        world:newRectangleCollider(285, 165, 50, 10),
-        world:newRectangleCollider(285, 115, 50, 10),
-        world:newRectangleCollider(10, 65, 100, 10),
+    jumpThroughPlatforms = {
+        {x = 285, y = 165, w = 50, h = 10},
+        {x = 285, y = 115, w = 50, h = 10},
+        {x = 10, y = 65, w = 100, h = 10},
     }
 
     -- Set collision classes
     world:addCollisionClass('Player')
     world:addCollisionClass('JumpThrough')
 
-    for _, groundTable in ipairs({grounds, bouncyGrounds, jumpThroughGrounds}) do
-        for _, ground in ipairs(groundTable) do
-            ground:setType("static")
+    -- Initialize the collider tables
+    normalPlatformsColliders = {}
+    bouncyPlatformsColliders = {}
+    jumpThroughPlatformsColliders = {}
+
+    for _, platformTable in ipairs({normalPlatforms, bouncyPlatforms, jumpThroughPlatforms}) do
+        for _, platform in ipairs(platformTable) do
+            local collider = world:newRectangleCollider(platform.x, platform.y, platform.w, platform.h)
+            collider:setType("static")
+
+            -- Populate the collider tables
+            if platformTable == normalPlatforms then
+                table.insert(normalPlatformsColliders, collider)
+            elseif platformTable == bouncyPlatforms then
+                table.insert(bouncyPlatformsColliders, collider)
+            elseif platformTable == jumpThroughPlatforms then
+                table.insert(jumpThroughPlatformsColliders, collider)
+            end
         end
     end
 
     -- Set collision callbacks
     player:setCollisionClass('Player')
-    for _, ground in ipairs(jumpThroughGrounds) do
-        ground:setCollisionClass('JumpThrough')
+    for _, jumpThroughPlatformCollider in ipairs(jumpThroughPlatformsColliders) do
+        jumpThroughPlatformCollider:setCollisionClass('JumpThrough')
     end
 
     -- Set pre-solve callback for jump-through platforms
@@ -64,6 +79,8 @@ function love.load()
     leftWall:setType("static")
     topWall = world:newRectangleCollider(0, 0, 800, 10)
     topWall:setType("static")
+    bottomWall = world:newRectangleCollider(0, 590, 800, 10)
+    bottomWall:setType("static")
 
     canJump = true
 end
@@ -77,26 +94,33 @@ function love.update(dt)
         player:applyForce(50, 0)
     end
 
-    -- Check if player is on the ground
+    -- Initialize the jump variable
     canJump = false
-    for i, ground in ipairs(grounds) do
-        if player:isTouching(ground.body) then
+
+    -- Check if player is on the ground
+    if player:isTouching(bottomWall.body) then
+        canJump = true
+    end
+
+    -- Check if player is on normal platform
+    for i, normalPlatformCollider in ipairs(normalPlatformsColliders) do
+        if player:isTouching(normalPlatformCollider.body) then
             canJump = true
             break
         end
     end
 
-    -- Check if player is on the bouncy ground
-    for i, ground in ipairs(bouncyGrounds) do
-        if player:isTouching(ground.body) then
+    -- Check if player is on the bouncy platform
+    for i, bouncyPlatformCollider in ipairs(bouncyPlatformsColliders) do
+        if player:isTouching(bouncyPlatformCollider.body) then
             player:applyLinearImpulse(0, -50)
             break
         end
     end
 
-    -- Check if player is on the jump-through ground
-    for _, ground in ipairs(jumpThroughGrounds) do
-        if player:isTouching(ground.body) then
+    -- Check if player is on the jump-through platform
+    for _, jumpThroughPlatformCollider in ipairs(jumpThroughPlatformsColliders) do
+        if player:isTouching(jumpThroughPlatformCollider.body) then
             canJump = true
             break
         end
