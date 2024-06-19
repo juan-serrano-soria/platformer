@@ -133,6 +133,28 @@ end
 function love.draw()
     -- Draw the colliders
     world:draw()
+
+    -- Draw the player
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle('fill', player:getX() - 5, player:getY() - 5, 10, 10)
+
+    -- Draw the normal platforms
+    love.graphics.setColor(165/255, 42/255, 42/255)
+    for i, normalPlatform in ipairs(normalPlatforms) do
+        love.graphics.rectangle('fill', normalPlatform.x, normalPlatform.y, normalPlatform.w, normalPlatform.h)
+    end
+
+    -- Draw the bouncy platforms
+    love.graphics.setColor(0, 1, 0)
+    for i, bouncyPlatform in ipairs(bouncyPlatforms) do
+        love.graphics.rectangle('fill', bouncyPlatform.x, bouncyPlatform.y, bouncyPlatform.w, bouncyPlatform.h)
+    end
+
+    -- Draw the jump-through platforms
+    love.graphics.setColor(173/255, 216/255, 230/255)
+    for i, jumpThroughPlatform in ipairs(jumpThroughPlatforms) do
+        love.graphics.rectangle('fill', jumpThroughPlatform.x, jumpThroughPlatform.y, jumpThroughPlatform.w, jumpThroughPlatform.h)
+    end
 end
 
 function love.keypressed(key)
