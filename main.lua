@@ -73,12 +73,19 @@ function love.load()
         end
     end)
 
-    rightWall = world:newRectangleCollider(790, 0, 10, 600)
-    rightWall:setType("static")
-    leftWall = world:newRectangleCollider(0, 0, 10, 600)
-    leftWall:setType("static")
-    topWall = world:newRectangleCollider(0, 0, 800, 10)
-    topWall:setType("static")
+    -- Border walls
+    walls = {
+        {x = 790, y = 0, w = 10, h = 600},
+        {x = 0, y = 0, w = 10, h = 600},
+        {x = 0, y = 0, w = 800, h = 10},
+        {x = 0, y = 590, w = 800, h = 10},
+    }
+
+    for _, wall in ipairs(walls) do
+        local collider = world:newRectangleCollider(wall.x, wall.y, wall.w, wall.h)
+        collider:setType("static")
+    end
+
     bottomWall = world:newRectangleCollider(0, 590, 800, 10)
     bottomWall:setType("static")
 
@@ -131,9 +138,6 @@ function love.update(dt)
 end
 
 function love.draw()
-    -- Draw the colliders
-    world:draw()
-
     -- Draw the player
     love.graphics.setColor(1, 1, 1)
     love.graphics.rectangle('fill', player:getX() - 5, player:getY() - 5, 10, 10)
@@ -154,6 +158,12 @@ function love.draw()
     love.graphics.setColor(173/255, 216/255, 230/255)
     for i, jumpThroughPlatform in ipairs(jumpThroughPlatforms) do
         love.graphics.rectangle('fill', jumpThroughPlatform.x, jumpThroughPlatform.y, jumpThroughPlatform.w, jumpThroughPlatform.h)
+    end
+
+    -- Draw the border walls
+    love.graphics.setColor(153/255, 153/255, 0/255)
+    for i, wall in ipairs(walls) do
+        love.graphics.rectangle('fill', wall.x, wall.y, wall.w, wall.h)
     end
 end
 
