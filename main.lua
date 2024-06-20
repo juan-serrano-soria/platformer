@@ -89,6 +89,18 @@ function love.load()
     bottomWall = world:newRectangleCollider(0, 590, 800, 10)
     bottomWall:setType("static")
 
+    win = {x = 10, y = 55, w = 10, h = 10}
+    winCollider = world:newRectangleCollider(win.x, win.y, win.w, win.h)
+
+    -- Set the font and text for win message
+    winFont = love.graphics.setNewFont(50)
+    winTextContent = ""
+    winText = love.graphics.newText(winFont, winTextContent)
+
+    -- Initialize winning variables
+    winTime = 0
+    hasWon = false
+
     canJump = true
 end
 
@@ -133,6 +145,21 @@ function love.update(dt)
         end
     end
 
+    -- Winning
+    if player:isTouching(winCollider.body) and not hasWon then
+        winText:set("You Win!")  -- Set the win text
+        hasWon = true  -- Set the hasWon flag to true
+    end
+    if hasWon then
+        winTime = winTime + dt  -- Increment the win timer by the elapsed time
+        if winTime >= 3 then
+            player:setPosition(400, 500)  -- Reset player position
+            winTime = 0  -- Reset the win timer
+            winText:set("")  -- Remove the win text
+            hasWon = false  -- Reset the hasWon flag
+        end
+    end
+
     -- Update the world physics
     world:update(dt)
 end
@@ -165,6 +192,18 @@ function love.draw()
     for i, wall in ipairs(walls) do
         love.graphics.rectangle('fill', wall.x, wall.y, wall.w, wall.h)
     end
+
+    -- Draw the win area
+    love.graphics.setColor(1, 1, 0)
+    love.graphics.rectangle('fill', win.x, win.y, win.w, win.h)
+
+    -- Set the font and print win message
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(winFont)
+    local text_width, text_height = winText:getDimensions()
+    local x = (800 - text_width) / 2
+    local y = (600 - text_height) / 2
+    love.graphics.draw(winText, x, y)
 end
 
 function love.keypressed(key)
