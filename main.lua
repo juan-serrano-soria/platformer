@@ -1,5 +1,6 @@
 function love.load()
     wf = require "libs/windfield"
+    camera = require "libs/camera"
 
     world = wf.newWorld(0, 500)
     player = world:newRectangleCollider(400, 500, 10, 10)
@@ -102,6 +103,10 @@ function love.load()
     hasWon = false
 
     canJump = true
+
+    -- Set the camera
+    cam = camera(player:getX(), player:getY())
+    cam:zoom(1.5)
 end
 
 function love.update(dt)
@@ -149,6 +154,9 @@ function love.update(dt)
     if player:isTouching(winCollider.body) and not hasWon then
         winText:set("You Win!")  -- Set the win text
         hasWon = true  -- Set the hasWon flag to true
+        -- Reset the camera's position and zoom level
+        cam:lookAt(800 / 2, 600 / 2)  -- Center the camera on the map
+        cam:zoomTo(1)
     end
     if hasWon then
         winTime = winTime + dt  -- Increment the win timer by the elapsed time
@@ -157,7 +165,13 @@ function love.update(dt)
             winTime = 0  -- Reset the win timer
             winText:set("")  -- Remove the win text
             hasWon = false  -- Reset the hasWon flag
+            cam:zoomTo(1.5) -- Reset the zoom level
         end
+    end
+
+    -- Update the camera
+    if not hasWon then
+        cam:lookAt(player:getX(), player:getY())
     end
 
     -- Update the world physics
@@ -165,6 +179,11 @@ function love.update(dt)
 end
 
 function love.draw()
+    -- Set the camera
+    if not hasWon then
+        cam:attach()
+    end
+
     -- Draw the player
     love.graphics.setColor(1, 1, 1)
     love.graphics.rectangle('fill', player:getX() - 5, player:getY() - 5, 10, 10)
@@ -204,6 +223,11 @@ function love.draw()
     local x = (800 - text_width) / 2
     local y = (600 - text_height) / 2
     love.graphics.draw(winText, x, y)
+
+    -- Reset the camera
+    if not hasWon then
+        cam:detach()
+    end
 end
 
 function love.keypressed(key)
