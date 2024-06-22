@@ -170,8 +170,12 @@ function love.update(dt)
     end
 
     -- Update the camera
+    local halfScreenWidth = love.graphics.getWidth() / (2 * cam.scale)
+    local halfScreenHeight = love.graphics.getHeight() / (2 * cam.scale)
+    local clampedX = math.max(halfScreenWidth, math.min(player:getX(), 800 - halfScreenWidth))
+    local clampedY = math.max(halfScreenHeight, math.min(player:getY(), 600 - halfScreenHeight))
     if not hasWon then
-        cam:lookAt(player:getX(), player:getY())
+        cam:lookAt(clampedX, clampedY)
     end
 
     -- Update the world physics
